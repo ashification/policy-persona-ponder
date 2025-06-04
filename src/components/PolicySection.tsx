@@ -43,28 +43,69 @@ export const PolicySection = ({ policy, onUpdate }: PolicySectionProps) => {
     });
   };
 
+  const extractTextFromHtml = (html: string): string => {
+    // Create a temporary DOM element to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Remove script and style elements
+    const scripts = tempDiv.querySelectorAll('script, style, nav, header, footer, aside');
+    scripts.forEach(el => el.remove());
+    
+    // Get all text content and clean it up
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Clean up whitespace and format the text
+    return textContent
+      .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+      .replace(/\n\s*\n/g, '\n\n') // Preserve paragraph breaks
+      .trim();
+  };
+
   const loadFromUrl = async () => {
     if (!policy.sourceUrl) return;
     
     setIsLoadingFromUrl(true);
     
     try {
-      // Simulate API call to extract content from webpage
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use a CORS proxy to fetch the webpage content
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(policy.sourceUrl)}`;
+      const response = await fetch(proxyUrl);
       
-      // Mock extracted content
-      const extractedContent = {
+      if (!response.ok) {
+        throw new Error('Failed to fetch webpage');
+      }
+      
+      const data = await response.json();
+      const htmlContent = data.contents;
+      
+      // Extract text content from the HTML
+      const extractedText = extractTextFromHtml(htmlContent);
+      
+      // Try to extract a title from the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      const titleElement = tempDiv.querySelector('title, h1');
+      const extractedTitle = titleElement?.textContent?.trim() || 'Policy Document';
+      
+      onUpdate({
+        ...policy,
+        title: extractedTitle,
+        description: extractedText
+      });
+    } catch (error) {
+      console.error('Error loading from URL:', error);
+      // Fallback to simulate content if CORS proxy fails
+      const fallbackContent = {
         title: "Healthcare Accessibility Act 2024",
-        description: "This comprehensive policy aims to improve healthcare accessibility for all citizens by establishing new standards for medical facilities, expanding insurance coverage, and implementing digital health records systems. The policy includes provisions for rural healthcare expansion, telemedicine services, and reduced prescription drug costs through government negotiations with pharmaceutical companies."
+        description: "Unable to fetch content from the provided URL due to CORS restrictions. Please copy and paste the policy content manually, or try using a different URL format."
       };
       
       onUpdate({
         ...policy,
-        title: extractedContent.title,
-        description: extractedContent.description
+        title: fallbackContent.title,
+        description: fallbackContent.description
       });
-    } catch (error) {
-      console.error('Error loading from URL:', error);
     } finally {
       setIsLoadingFromUrl(false);
     }
@@ -105,7 +146,7 @@ export const PolicySection = ({ policy, onUpdate }: PolicySectionProps) => {
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Paste a link to automatically extract policy information
+            Paste a link to automatically extract all text content from the webpage
           </p>
         </div>
 
