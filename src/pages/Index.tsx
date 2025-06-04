@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PersonaCard } from '@/components/PersonaCard';
 import { PolicySection } from '@/components/PolicySection';
@@ -17,6 +16,7 @@ interface Policy {
   title: string;
   description: string;
   amendments: string[];
+  sourceUrl?: string;
 }
 
 const Index = () => {
@@ -24,7 +24,8 @@ const Index = () => {
   const [policy, setPolicy] = useState<Policy>({
     title: '',
     description: '',
-    amendments: []
+    amendments: [],
+    sourceUrl: ''
   });
   const [consequences, setConsequences] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

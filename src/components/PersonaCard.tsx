@@ -80,7 +80,7 @@ export const PersonaCard = ({ persona, onUpdate, onRemove }: PersonaCardProps) =
             placeholder="Describe this persona's role, interests, and situation..."
             className="mt-1 text-sm"
             rows={3}
-            disabled={!isEditing && persona.name}
+            disabled={!isEditing && Boolean(persona.name)}
           />
         </div>
         
@@ -94,7 +94,7 @@ export const PersonaCard = ({ persona, onUpdate, onRemove }: PersonaCardProps) =
             placeholder="Age, income, location, education, family status..."
             className="mt-1 text-sm"
             rows={2}
-            disabled={!isEditing && persona.name}
+            disabled={!isEditing && Boolean(persona.name)}
           />
         </div>
         

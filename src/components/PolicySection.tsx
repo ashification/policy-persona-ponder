@@ -1,13 +1,15 @@
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Plus, X, FileText } from 'lucide-react';
+import { Plus, X, FileText, ExternalLink, Loader2 } from 'lucide-react';
 
 interface Policy {
   title: string;
   description: string;
   amendments: string[];
+  sourceUrl?: string;
 }
 
 interface PolicySectionProps {
@@ -16,6 +18,8 @@ interface PolicySectionProps {
 }
 
 export const PolicySection = ({ policy, onUpdate }: PolicySectionProps) => {
+  const [isLoadingFromUrl, setIsLoadingFromUrl] = useState(false);
+
   const addAmendment = () => {
     onUpdate({
       ...policy,
@@ -39,6 +43,33 @@ export const PolicySection = ({ policy, onUpdate }: PolicySectionProps) => {
     });
   };
 
+  const loadFromUrl = async () => {
+    if (!policy.sourceUrl) return;
+    
+    setIsLoadingFromUrl(true);
+    
+    try {
+      // Simulate API call to extract content from webpage
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock extracted content
+      const extractedContent = {
+        title: "Healthcare Accessibility Act 2024",
+        description: "This comprehensive policy aims to improve healthcare accessibility for all citizens by establishing new standards for medical facilities, expanding insurance coverage, and implementing digital health records systems. The policy includes provisions for rural healthcare expansion, telemedicine services, and reduced prescription drug costs through government negotiations with pharmaceutical companies."
+      };
+      
+      onUpdate({
+        ...policy,
+        title: extractedContent.title,
+        description: extractedContent.description
+      });
+    } catch (error) {
+      console.error('Error loading from URL:', error);
+    } finally {
+      setIsLoadingFromUrl(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
@@ -47,6 +78,37 @@ export const PolicySection = ({ policy, onUpdate }: PolicySectionProps) => {
       </div>
 
       <div className="space-y-4">
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
+            Policy Source URL (Optional)
+          </label>
+          <div className="flex gap-2">
+            <Input
+              value={policy.sourceUrl || ''}
+              onChange={(e) => onUpdate({ ...policy, sourceUrl: e.target.value })}
+              placeholder="https://example.gov/policy-document"
+              className="flex-1"
+            />
+            <Button 
+              onClick={loadFromUrl} 
+              disabled={!policy.sourceUrl || isLoadingFromUrl}
+              size="sm"
+              variant="outline"
+              className="gap-2 whitespace-nowrap"
+            >
+              {isLoadingFromUrl ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="h-4 w-4" />
+              )}
+              Load Content
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Paste a link to automatically extract policy information
+          </p>
+        </div>
+
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 block">
             Policy Title
